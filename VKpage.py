@@ -1,9 +1,10 @@
 # подключение модулей
 import requests
 import time
+import sqlite3
 
 # токен и id
-token = '97ad13079762c39ef7b88bc38b2b90735f4c98bb99cdae1249ee2ba70440b7438a148b828c24d92de0c3b'
+token = 'token'
 page_id = 'dm'
 
 
@@ -24,7 +25,9 @@ print(title_page)
 new_id = str(title_page[0]['id'])
 wall = vk_download('wall.get', 'owner_id=' + new_id)
 count_notes = wall['count']
+name_page = title_page[0]['first_name'] + ' ' + title_page[0]['last_name']
 n = int(input('На странице ' + str(count_notes) + ' записей. Сколько скачаем записей? '))
+conn = sqlite3.connect(name_page+'.db')
 for i in range(0, n):
     param = '&count=1&offset=' + str(i)
     note = vk_download('wall.get', 'owner_id=' + new_id + param)
