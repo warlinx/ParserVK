@@ -63,6 +63,76 @@ def page_download(page_id):
     return information_from_page
 
 
+#Основной код
+for group_id in group_ids:
+    group_info = vk_download('groups.getById', 'group_id=' + group_id)
+    group_name = group_info[0]['name']
+    print('Группа:', '"' + group_name + '"')
+    group_info = vk_download('wall.get', 'domain=' + group_id)
+    count_post = group_info['count']
+    if count_post >= 50:
+        n = 50
+    else:
+        n = count_post
+    i,k = 0,0
+    while i < n:
+        print('# Запись №', i + 1)
+        parameter_offset = '&count=1&offset=' + str(i)
+        download_note = vk_download('wall.get', 'domain=' + group_id + parameter_offset)
+        download_note = download_note['items'][0]
+        if int(download_note['from_id']) == int(download_note['owner_id']):
+            id_post = download_note['id']
+            id_group = download_note['from_id']
+            count_likes = download_note['likes']['count']
+            if count_likes != 0:
+                for j in range(0, count_likes):
+                    print('Лайк', j, 'из', count_likes)
+                    param_post = '&type=post&owner_id=' + str(id_group) + '&'
+                    param_post += 'item_id=' + str(id_post) + '&filter=likes&'
+                    param_post += 'extended=1&offset=' + str(j) + '&count=1&v=5.130'
+                    post = vk_download('likes.getList', param_post)
+                    post = post['items']
+                    post = post[0]
+                    id_page = str(post['id'])
+                    spis = []
+                    if not (dict_for_bd.get(id_page)):
+                        page = page_download(id_page)
+                        like = 1
+                        spis = [page, like]
+                        dict_for_bd[id_page] = spis
+                    else:
+                        spis = dict_for_bd[id_page]
+                        spis[1] += 1
+                        dict_for_bd[id_page] = spis
+                    time.sleep(0.5)
+                    k += 1
+                    print('Записей скачано:', k)
+                else:
+                    n +=1
+        else:
+            n += 1
+        i += 1
+        time.sleep(0.5)
+    print('Группа:', '"' + group_name + '"')
+    print('Посты скачаны. Из этой группы скачано: ' + str(k))
+
+
+dkeys = dict_for_bd.keys()
+for dkey in dkeys:
+    spis = dict_for_bd[dkey]
+    id_page = spis[0][1]
+    name = spis[0][0]
+    phone = spis[0][2]
+    site = spis[0][3]
+    likes = spis[1]
+    record = (id_page, name, phone, site, likes)
+    cur.execute("INSERT INTO tabl VALUES(?, ?, ?, ?, ?);", record)
+    conn.commit()
+print('База данных готова.')
+
+
+
+
 
 
 
