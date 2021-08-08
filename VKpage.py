@@ -42,4 +42,9 @@ for i in range(0, n):
     likes_count, reposts_count = str(note['likes']['count']), str(note['reposts']['count'])
     if int(note['from_id']) == int(note['owner_id']):
         author_note = 'Владелец'
-    print(author_note, coments_count, likes_count, reposts_count)
+    information_recording =(i, author_note, coments_count, likes_count, reposts_count)
+    cur.execute("INSERT INTO wall VALUES(?, ?, ?, ?, ?);", information_recording)
+    conn.commit()
+    time.sleep(0.5)
+    print('Записей скачано:', i + 1)
+    print('Посты скачаны. Всего скачано: ' + str(n))
